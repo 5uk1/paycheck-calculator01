@@ -52,7 +52,7 @@
     }
 
     button {
-      width: 100%;
+      width: 100%; /* Ensure both buttons take full width */
       padding: 10px;
       margin-top: 10px;
       border: none;
@@ -60,6 +60,13 @@
       cursor: pointer;
       transition: background-color 0.3s, transform 0.2s;
       font-size: 16px;
+      text-align: center;
+      padding: 10px;
+    }
+
+    .toggle-button, .chick-fil-a-button {
+      width: calc(100% - 30px); /* Both buttons match width */
+      margin: 15px auto; /* Center both with identical margin */
     }
 
     .calculate-button {
@@ -130,8 +137,8 @@
     }
 
     .toggle-button {
-      margin: 10px auto;
-      width: calc(100% - 22px);
+      margin: 30px auto;
+      width: calc(100% - 30px);
       background-color: #007bff;
       color: white;
     }
@@ -238,7 +245,12 @@
       <p id="totalPayment">Total expected Payment for Two Weeks: </p>
       <p id="monthlyPayment">Possible Expected Payment Monthly: </p>
       <p id="yearlyPayment">Possible Expected Payment Yearly: </p>
+      <p id="earningReason"></p> <!-- New Element to Show the Reason -->
     </div>
+    <div class="rules hidden" id="rulesSection">
+      <h2>Rules</h2>
+      <div id="rulesContent"></div>
+    </div>    
 
     <!-- EULA Link -->
     <a class="eula-link" onclick="openEula()">End User License Agreement (EULA)</a>
@@ -303,6 +315,48 @@
       button.classList.toggle('selected'); // Change the button appearance
     }
 
+    function displayRules() {
+  const rules = `
+    <h3>FRONT OF THE HOUSE:</h3>
+    <ul>
+      <li>17 or less in both weeks = $8.56 per hour</li>
+      <li>18 or more but not more than 31 = $11 per hour</li>
+      <li>32 or more in both weeks = $15 per hour</li>
+      <li>You need to make 18 hours both weeks for $11 per hour</li>
+      <li>You need to make 32 hours both weeks for $15 per hour</li>
+      <li>Leaders = $18 per hour regardless of anything</li>
+    </ul>
+    <h3>BACK OF THE HOUSE:</h3>
+    <ul>
+      <li>31 or less both weeks = $9 per hour</li>
+      <li>32 or more in both weeks = $15 per hour</li>
+      <li>You need to make 32 hours both weeks for $15 per hour</li>
+      <li>Leaders = $18 per hour regardless of anything</li>
+    </ul>
+  `;
+  document.getElementById('rulesContent').innerHTML = rules;
+}
+
+function toggleChickFilAMode() {
+  const options = document.getElementById('chickFilAOptions');
+  const hourlyRateGroup = document.getElementById('hourlyRateGroup');
+  const button = document.getElementById('chickFilAMode');
+  const rulesSection = document.getElementById('rulesSection');
+
+  options.classList.toggle('hidden');
+  hourlyRateGroup.classList.toggle('hidden');
+  button.classList.toggle('selected'); // Change the button appearance
+
+  // Show or hide rules based on Chick-fil-A mode status
+  if (!options.classList.contains('hidden')) {
+    displayRules(); // Display rules only when Chick-fil-A mode is active
+    rulesSection.classList.remove('hidden');
+  } else {
+    rulesSection.classList.add('hidden');
+  }
+}
+
+
     function toggleButton(buttonId) {
       const buttons = ['frontOfHouse', 'backOfHouse'];
       buttons.forEach(id => {
@@ -326,32 +380,74 @@
     }
 
     function calculatePayment() {
-      const hoursWeek1 = parseFloat(document.getElementById('hoursWeek1').value) || 0;
-      const hoursWeek2 = parseFloat(document.getElementById('hoursWeek2').value) || 0;
-      const totalHours = hoursWeek1 + hoursWeek2;
+  const hoursWeek1 = parseFloat(document.getElementById('hoursWeek1').value) || 0;
+  const hoursWeek2 = parseFloat(document.getElementById('hoursWeek2').value) || 0;
+  const totalHours = hoursWeek1 + hoursWeek2;
 
-      let hourlyRate = 0;
+  let hourlyRate = 0;
+  let reason = '';
 
-      if (document.getElementById('leader').checked) {
-        hourlyRate = 18; // Leader rate
-      } else if (document.getElementById('frontOfHouse').checked) {
-        hourlyRate = (hoursWeek1 <= 17 && hoursWeek2 <= 18) ? 8.56 :
-                      (hoursWeek1 <= 18 && hoursWeek2 <= 17) ? 8.56 :
-                      (hoursWeek1 >= 32 && hoursWeek2 >= 32) ? 15 : 11;
-      } else if (document.getElementById('backOfHouse').checked) {
-        hourlyRate = (hoursWeek1 <= 31 && hoursWeek2 <= 31) ? 9 :
-                      (hoursWeek1 >= 32 && hoursWeek2 >= 32) ? 15 : 9;
-      }
-
-      const totalPayment = totalHours * hourlyRate;
-      const monthlyPayment = totalPayment * 2;
-      const yearlyPayment = monthlyPayment * 12;
-
-      document.getElementById('totalHours').textContent = `Total Hours Worked: ${totalHours}`;
-      document.getElementById('totalPayment').textContent = `Total Payment for Two Weeks: $${totalPayment.toFixed(2)}`;
-      document.getElementById('monthlyPayment').textContent = `Possible Expected Payment Monthly: $${monthlyPayment.toFixed(2)}`;
-      document.getElementById('yearlyPayment').textContent = `Possible Expected Payment Yearly: $${yearlyPayment.toFixed(2)}`;
+  if (document.getElementById('leader').checked) {
+    hourlyRate = 18;
+    reason = 'You are earning $18 per hour because you are a leader.';
+  } else if (document.getElementById('frontOfHouse').checked) {
+    if (hoursWeek1 >= 32 && hoursWeek2 >= 32) {
+      hourlyRate = 15;
+      reason = 'You are earning $15 per hour because you worked at least 32 hours or more in both weeks.';
+    } else if (hoursWeek1 <= 17 && hoursWeek2 <= 18) {
+      hourlyRate = 8.56;
+      reason = 'You are earning $8.56 per hour because your total hours in one or both of the weeks are 17 or less, or you made 17 in one and 18 in the other.';
+    } else if (hoursWeek1 <= 18 && hoursWeek2 <= 17) {
+      hourlyRate = 8.56;
+      reason = 'You are earning $8.56 per hour because your total hours in one or both of the weeks are 17 or less, or you made 17 in one and 18 in the other.';
+    } else {
+      hourlyRate = 11;
+      reason = 'You are earning $11 per hour because your total hours are between 18 and 31 in one or both of the weeks. Or you made 31 in one and 32 in the other';
     }
+  } else if (document.getElementById('backOfHouse').checked) {
+    hourlyRate = (totalHours <= 31) ? 9 : 15;
+    reason = totalHours <= 31 
+      ? 'You are earning $9 per hour because you worked fewer than 32 hours.' 
+      : 'You are earning $15 per hour because you worked 32 or more hours.';
+  }
+
+  const totalPayment = totalHours * hourlyRate;
+  const monthlyPayment = totalPayment * 2;
+  const yearlyPayment = monthlyPayment * 12;
+
+  document.getElementById('totalHours').textContent = `Total Hours Worked: ${totalHours}`;
+  document.getElementById('totalPayment').textContent = `Total Payment for Two Weeks: $${totalPayment.toFixed(2)}`;
+  document.getElementById('monthlyPayment').textContent = `Possible Expected Payment Monthly: $${monthlyPayment.toFixed(2)}`;
+  document.getElementById('yearlyPayment').textContent = `Possible Expected Payment Yearly: $${yearlyPayment.toFixed(2)}`;
+  document.getElementById('earningReason').textContent = reason; // Display the reason
+}
+
+function displayRules() {
+  const rules = `
+    <h3>FRONT OF THE HOUSE:</h3>
+    <ul>
+      <li>17 or less in both weeks = $8.56 per hour</li>
+      <li>18 or more but not more than 31 = $11 per hour</li>
+      <li>32 or more in both weeks = $15 per hour</li>
+      <li>You need to make 18 hours both weeks for $11 per hour</li>
+      <li>You need to make 32 hours both weeks for $15 per hour</li>
+      <li>Leaders = $18 per hour regardless of anything</li>
+    </ul>
+    <h3>BACK OF THE HOUSE:</h3>
+    <ul>
+      <li>31 or less both weeks = $9 per hour</li>
+      <li>32 or more in both weeks = $15 per hour</li>
+      <li>You need to make 32 hours both weeks for $15 per hour</li>
+      <li>Leaders = $18 per hour regardless of anything</li>
+    </ul>
+  `;
+
+  document.getElementById('rulesContent').innerHTML = rules;
+}
+
+// Call displayRules() to show the rules when the page loads
+displayRules();
+
 
     // EULA Modal Functions
     function openEula() {
