@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Check Calculator</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      transition: background-color 0.3s;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 24px;
+      color: #2c3e50;
+      transition: color 0.3s;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    input {
+      width: calc(100% - 22px);
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition: border 0.3s;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+      font-size: 16px;
+    }
+
+    .calculate-button {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .chick-fil-a-button {
+      background-color: #AA4A44;
+      color: white;
+    }
+
+    .chick-fil-a-button.selected {
+      background-color: #571a1a; /* Darker tone when selected */
+    }
+
+    .result {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .checkbox-button {
+      background-color: #f0f0f0;
+      border: 2px solid #ccc;
+      margin-top: 10px;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+
+    .checkbox-button.selected {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Dark Mode Styling */
+    .dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    .dark-mode h1 {
+      color: white;
+    }
+
+    .dark-mode .container {
+      background-color: #1e1e1e;
+    }
+
+    .dark-mode input {
+      background-color: #2e2e2e;
+      color: white;
+    }
+
+    .dark-mode .checkbox-button {
+      background-color: #444;
+      color: white;
+    }
+
+    .dark-mode .checkbox-button.selected {
+      background-color: #1e90ff;
+    }
+
+    .toggle-button {
+      margin: 10px auto;
+      width: calc(100% - 22px);
+      background-color: #007bff;
+      color: white;
+    }
+
+    /* EULA Link Styling */
+    .eula-link {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+      text-align: center;
+      display: block;
+      margin-top: 20px;
+    }
+
+    /* Modal Styling */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      padding-top: 60px; /* Location of the box */
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto; /* 15% from the top and centered */
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+      max-width: 600px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Payment Check Calculator</h1>
+
+    <div class="form-group">
+      <button class="toggle-button" onclick="toggleNightMode()">Toggle Night Mode</button>
+    </div>
+
+    <div class="form-group">
+      <button class="chick-fil-a-button" id="chickFilAMode" onclick="toggleChickFilAMode()">Chick-fil-A Mode</button>
+    </div>
+
+    <div id="chickFilAOptions" class="hidden">
+      <div class="checkbox-button" id="frontOfHouseButton" onclick="toggleButton('frontOfHouse')">
+        Front of the House
+      </div>
+      <input type="checkbox" id="frontOfHouse" class="hidden">
+
+      <div class="checkbox-button" id="backOfHouseButton" onclick="toggleButton('backOfHouse')">
+        Back of the House
+      </div>
+      <input type="checkbox" id="backOfHouse" class="hidden">
+
+      <!-- New "I am a leader" Button -->
+      <div class="checkbox-button" id="leaderButton" onclick="toggleLeader()">I am a leader</div>
+      <input type="checkbox" id="leader" class="hidden">
+    </div>
+
+    <div class="form-group" id="hourlyRateGroup">
+      <label for="hourlyRate">Hourly Payment ($):</label>
+      <input type="number" id="hourlyRate" min="0" placeholder="Type your hourly rate" />
+    </div>
+
+    <div class="form-group">
+      <label for="hoursWeek1">Hours Worked - Week 1:</label>
+      <input type="number" id="hoursWeek1" min="0" placeholder="Type hours" />
+    </div>
+
+    <div class="form-group">
+      <label for="hoursWeek2">Hours Worked - Week 2:</label>
+      <input type="number" id="hoursWeek2" min="0" placeholder="Type hours" />
+    </div>
+
+    <button class="calculate-button" onclick="calculatePayment()">Calculate</button>
+
+    <div class="result">
+      <h2>Results</h2>
+      <p id="totalHours">Total Hours Worked: </p>
+      <p id="totalPayment">Total expected Payment for Two Weeks: </p>
+      <p id="monthlyPayment">Possible Expected Payment Monthly: </p>
+      <p id="yearlyPayment">Possible Expected Payment Yearly: </p>
+    </div>
+
+    <!-- EULA Link -->
+    <a class="eula-link" onclick="openEula()">End User License Agreement (EULA)</a>
+
+    <!-- Modal for EULA -->
+    <div id="eulaModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeEula()">&times;</span>
+        <h2>End User License Agreement (EULA)</h2>
+        <p>
+          By using this Payment Check Calculator, you acknowledge and agree to the following terms:
+        </p>
+        <p>
+          1. The results generated by this webpage are intended solely for informational and educational purposes. Users are advised that these results are estimates and should not be construed as definitive or precise calculations. The estimates provided do not account for any tax deductions, additional costs, or other financial considerations that may apply to individual circumstances. Consequently, users should not rely exclusively on these estimates for financial decision-making. It is recommended that users consult with a qualified financial advisor or tax professional to obtain tailored advice based on their specific situations. The creator of this webpage assumes no liability for any discrepancies, losses, or damages that may arise from the use of this tool or the reliance on its results.
+        </p>
+        <p>
+          2. This webpage is provided on an "as-is" and "as-available" basis, without any warranty of any kind, whether express or implied. This includes, but is not limited to, any warranties of accuracy, reliability, completeness, or fitness for a particular purpose. The creator of this webpage does not warrant that the information contained herein is free from errors, omissions, or inaccuracies, nor does it guarantee that the webpage will meet the user's requirements or expectations. Users are encouraged to verify the information independently and seek appropriate professional guidance before making any decisions based on the results generated by this webpage. By using this webpage, the user acknowledges and accepts these terms and conditions.
+        </p>
+        <p>
+          3. This webpage is intended solely for educational purposes and should not be construed as financial advice. The information and results generated by this webpage are designed to enhance the user’s understanding of payment calculations and related concepts. Users are strongly advised to consult with a qualified financial advisor or professional before making any financial decisions based on the information provided herein. The creator of this webpage disclaims any liability for actions taken or not taken based on the content of this webpage.
+        </p>
+        <p>
+          4. This webpage is designed solely for the purpose of providing estimates related to payment calculations based on user input.
+        </p>
+        <p>
+          5. This webpage does not collect, store, transmit, or distribute any personal data or input provided by users.
+        </p>
+        <p>
+          6. All information entered into this webpage remains on the user's device and is not accessible by this webpage itself or any third parties. By using this webpage, users can be assured that their data privacy is maintained, and no personal information will be stored or shared under any circumstances.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    let isDarkMode = prefersDarkScheme.matches;
+
+    function applyNightMode(enable) {
+      document.body.classList.toggle('dark-mode', enable);
+    }
+
+    applyNightMode(isDarkMode);
+
+    prefersDarkScheme.addEventListener('change', event => {
+      isDarkMode = event.matches;
+      applyNightMode(isDarkMode);
+    });
+
+    function toggleNightMode() {
+      isDarkMode = !isDarkMode;
+      applyNightMode(isDarkMode);
+    }
+
+    function toggleChickFilAMode() {
+      const options = document.getElementById('chickFilAOptions');
+      const hourlyRateGroup = document.getElementById('hourlyRateGroup');
+      const button = document.getElementById('chickFilAMode');
+      
+      options.classList.toggle('hidden');
+      hourlyRateGroup.classList.toggle('hidden');
+      button.classList.toggle('selected'); // Change the button appearance
+    }
+
+    function toggleButton(buttonId) {
+      const buttons = ['frontOfHouse', 'backOfHouse'];
+      buttons.forEach(id => {
+        const checkbox = document.getElementById(id);
+        const button = document.getElementById(id + 'Button');
+        if (id === buttonId) {
+          checkbox.checked = !checkbox.checked;
+          button.classList.toggle('selected', checkbox.checked);
+        } else {
+          checkbox.checked = false;
+          button.classList.remove('selected');
+        }
+      });
+    }
+
+    function toggleLeader() {
+      const leaderCheckbox = document.getElementById('leader');
+      leaderCheckbox.checked = !leaderCheckbox.checked;
+      const button = document.getElementById('leaderButton');
+      button.classList.toggle('selected', leaderCheckbox.checked);
+    }
+
+    function calculatePayment() {
+      const hoursWeek1 = parseFloat(document.getElementById('hoursWeek1').value) || 0;
+      const hoursWeek2 = parseFloat(document.getElementById('hoursWeek2').value) || 0;
+      const totalHours = hoursWeek1 + hoursWeek2;
+
+      let hourlyRate = 0;
+
+      if (document.getElementById('leader').checked) {
+        hourlyRate = 18; // Leader rate
+      } else if (document.getElementById('frontOfHouse').checked) {
+        hourlyRate = (hoursWeek1 <= 17 && hoursWeek2 <= 18) ? 8.56 :
+                      (hoursWeek1 <= 18 && hoursWeek2 <= 17) ? 8.56 :
+                      (hoursWeek1 >= 32 && hoursWeek2 >= 32) ? 15 : 11;
+      } else if (document.getElementById('backOfHouse').checked) {
+        hourlyRate = (hoursWeek1 <= 31 && hoursWeek2 <= 31) ? 9 :
+                      (hoursWeek1 >= 32 && hoursWeek2 >= 32) ? 15 : 9;
+      }
+
+      const totalPayment = totalHours * hourlyRate;
+      const monthlyPayment = totalPayment * 2;
+      const yearlyPayment = monthlyPayment * 12;
+
+      document.getElementById('totalHours').textContent = `Total Hours Worked: ${totalHours}`;
+      document.getElementById('totalPayment').textContent = `Total Payment for Two Weeks: $${totalPayment.toFixed(2)}`;
+      document.getElementById('monthlyPayment').textContent = `Possible Expected Payment Monthly: $${monthlyPayment.toFixed(2)}`;
+      document.getElementById('yearlyPayment').textContent = `Possible Expected Payment Yearly: $${yearlyPayment.toFixed(2)}`;
+    }
+
+    // EULA Modal Functions
+    function openEula() {
+      document.getElementById('eulaModal').style.display = "block";
+    }
+
+    function closeEula() {
+      document.getElementById('eulaModal').style.display = "none";
+    }
+
+    // Close the modal if the user clicks anywhere outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById('eulaModal');
+      if (event.target === modal) {
+        closeEula();
+      }
+    }
+  </script>
+</body>
+</html>
